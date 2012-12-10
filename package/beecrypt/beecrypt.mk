@@ -6,6 +6,7 @@
 BEECRYPT_VERSION = 4.2.1
 BEECRYPT_SITE = http://downloads.sourceforge.net/project/beecrypt/beecrypt/$(BEECRYPT_VERSION)
 BEECRYPT_AUTORECONF = YES
+HOST_BEECRYPT_AUTORECONF = YES
 BEECRYPT_INSTALL_STAGING = YES
 
 # beecrypt contains C++ code that g++ 4.7 doesn't really
@@ -14,15 +15,26 @@ BEECRYPT_INSTALL_STAGING = YES
 BEECRYPT_CONF_ENV = \
 	CXXFLAGS="$(TARGET_CXXFLAGS) -fpermissive"
 
+HOST_BEECRYPT_CONF_ENV = \
+	CXXFLAGS="$(HOST_CXXFLAGS) -fpermissive"
+
 BEECRYPT_CONF_OPT = \
 		--without-java \
 		--without-python
 
+HOST_BEECRYPT_CONF_OPT = \
+		--without-java \
+		--without-python
+
+HOST_BEECRYPT_CONF_OPT += --disable-openmp
+
 ifeq ($(BR2_PACKAGE_ICU),y)
 # C++ support needs icu
 BEECRYPT_DEPENDENCIES += icu
+HOST_BEECRYPT_DEPENDENCIES += host-icu
 else
 BEECRYPT_CONF_OPT += --without-cplusplus
+HOST_BEECRYPT_CONF_OPT += --without-cplusplus
 
 # automake/libtool uses the C++ compiler to link libbeecrypt because of
 # (the optional) cppglue.cxx. Force it to use the C compiler instead.
@@ -31,6 +43,8 @@ define BEECRYPT_LINK_WITH_CC
 endef
 
 BEECRYPT_POST_CONFIGURE_HOOKS += BEECRYPT_LINK_WITH_CC
+HOST_BEECRYPT_POST_CONFIGURE_HOOKS += BEECRYPT_LINK_WITH_CC
 endif
 
 $(eval $(autotools-package))
+$(eval $(host-autotools-package))
