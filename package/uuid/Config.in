@@ -1,0 +1,6 @@
+config BR2_PACKAGE_UUID
+	bool"uuid"
+	help
+	  The OSSP UUID generator.
+
+	  http://www.ossp.org/pkg/lib/uuid/
