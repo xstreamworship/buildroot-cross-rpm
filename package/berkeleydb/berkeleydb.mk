@@ -13,6 +13,9 @@ BERKELEYDB_INSTALL_STAGING = YES
 BERKELEYDB_BINARIES = db_archive db_checkpoint db_deadlock db_dump \
 	db_hotbackup db_load db_log_verify db_printlog db_recover db_replicate \
 	db_stat db_tuner db_upgrade db_verify
+HOST_BERKELEYDB_BINARIES = db_archive db_checkpoint db_deadlock db_dump \
+	db_hotbackup db_load db_log_verify db_printlog db_recover db_replicate \
+	db_stat db_tuner db_upgrade db_verify
 
 # build directory can't be the directory where configure are there, so..
 define BERKELEYDB_CONFIGURE_CMDS
@@ -38,6 +41,26 @@ define BERKELEYDB_CONFIGURE_CMDS
 	$(SED) 's/\.lo/.o/g' $(@D)/build_unix/Makefile
 endef
 
+define HOST_BERKELEYDB_CONFIGURE_CMDS
+	(cd $(@D)/build_unix; rm -rf config.cache; \
+		$(HOST_CONFIGURE_OPTS) \
+		$(HOST_CONFIGURE_ARGS) \
+		CFLAGS="$(HOST_CFLAGS)" \
+		LDFLAGS="$(HOST_LDFLAGS)" \
+		../dist/configure $(QUIET) \
+		--prefix=$(HOST_DIR)/usr \
+		--sysconfdir=$(HOST_DIR)/etc \
+		--enable-shared --disable-static \
+		--with-gnu-ld \
+		$(if $(BR2_INSTALL_LIBSTDCPP),--enable-cxx,--disable-cxx) \
+		--disable-java \
+		--disable-tcl \
+		--disable-compat185 \
+		--with-pic \
+		--enable-o_direct \
+	)
+endef
+
 ifneq ($(BR2_PACKAGE_BERKELEYDB_TOOLS),y)
 
 define BERKELEYDB_REMOVE_TOOLS
@@ -59,3 +82,5 @@ BERKELEYDB_POST_INSTALL_TARGET_HOOKS += BERKELEYDB_REMOVE_DOCS
 endif
 
 $(eval $(autotools-package))
+$(eval $(host-autotools-package))
+
