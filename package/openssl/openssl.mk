@@ -12,6 +12,8 @@ OPENSSL_INSTALL_STAGING = YES
 OPENSSL_DEPENDENCIES = zlib
 OPENSSL_TARGET_ARCH = generic32
 OPENSSL_CFLAGS = $(TARGET_CFLAGS)
+HOST_OPENSSL_DEPENDENCIES = host-zlib
+HOST_OPENSSL_CFLAGS = $(HOST_CFLAGS)
 
 ifeq ($(BR2_PACKAGE_OPENSSL_BIN),)
 define OPENSSL_DISABLE_APPS
@@ -72,9 +74,38 @@ define OPENSSL_CONFIGURE_CMDS
 	$(SED) "s:-O[0-9]:$(OPENSSL_CFLAGS):" $(@D)/Makefile
 endef
 
+define HOST_OPENSSL_CONFIGURE_CMDS
+	(cd $(@D); \
+		$(HOST_CONFIGURE_ARGS) \
+		$(HOST_CONFIGURE_OPTS) \
+		./Configure \
+			linux-elf \
+			--prefix=/usr \
+			--openssldir=/etc/ssl \
+			--libdir=/lib \
+			threads \
+			$(if $(BR2_PREFER_STATIC_LIB),no-shared,shared) \
+			no-idea \
+			no-rc5 \
+			enable-camellia \
+			enable-mdc2 \
+			enable-tlsext \
+			$(if $(BR2_PREFER_STATIC_LIB),zlib,zlib-dynamic) \
+			$(if $(BR2_PREFER_STATIC_LIB),no-dso) \
+	)
+	$(SED) "s:-march=[-a-z0-9] ::" -e "s:-mcpu=[-a-z0-9] ::g" $(@D)/Makefile
+	$(SED) "s:-O[0-9]:$(HOST_OPENSSL_CFLAGS):" $(@D)/Makefile
+endef
+
 define OPENSSL_BUILD_CMDS
 	$(MAKE1) -C $(@D) all build-shared
 	$(MAKE1) -C $(@D) do_linux-shared
+endef
+
+define HOST_OPENSSL_BUILD_CMDS
+	$(MAKE1) -C $(@D) all build-shared
+	$(MAKE1) -C $(@D) do_linux-shared
+	$(MAKE1) -C $(@D) INSTALL_PREFIX=$(HOST_DIR) install
 endef
 
 define OPENSSL_INSTALL_STAGING_CMDS
@@ -128,3 +159,4 @@ define OPENSSL_UNINSTALL_CMDS
 endef
 
 $(eval $(generic-package))
+$(eval $(host-generic-package))
