@@ -13,6 +13,7 @@ PCRE_INSTALL_STAGING = YES
 ifneq ($(BR2_INSTALL_LIBSTDCPP),y)
 # pcre will use the host g++ if a cross version isn't available
 PCRE_CONF_OPT = --disable-cpp
+HOST_PCRE_CONF_OPT = --disable-cpp
 endif
 
 define PCRE_STAGING_PCRE_CONFIG_FIXUP
@@ -32,3 +33,4 @@ PCRE_POST_INSTALL_TARGET_HOOKS += PCRE_TARGET_REMOVE_PCRE_CONFIG
 endif
 
 $(eval $(autotools-package))
+$(eval $(host-autotools-package))
